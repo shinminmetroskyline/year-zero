@@ -12,12 +12,28 @@ class year_zero_app(object):
     def __init__(self):
         self.config = {
             "app_name": "year zero",
+            "h_north": "southern hemisphere",
+            "h_south": "northern hemisphere"
         }
-        self.app = rumps.App(self.config["app_name"])
+        self.app = rumps.App(self.config["app_name"], quit_button="quit")
         self.timer = rumps.Timer(self.on_tick, 1)
+
+        self.toggle_hs = rumps.MenuItem(title=self.config["h_north"], callback=self.toggle_hemisphere)
+        self.app.menu = [self.toggle_hs]
+
+        self.hemisphere = 0
         self.rev_calendar()
-        # self.timer.start()
-        
+        self.timer.start()
+    
+    def toggle_hemisphere(self, sender):
+        if self.hemisphere == 0:
+            sender.title = self.config["h_south"]
+            self.hemisphere = 183
+
+        else:
+            sender.title = self.config["h_north"]
+            self.hemisphere = 0
+
 
     def rev_calendar(self):
         # this creates a date object for the last day of the previous year
@@ -32,11 +48,11 @@ class year_zero_app(object):
         offset = (year1 - date(date.today().year, 9, 22)).days
 
         # this calculates the number of days so far in this year
-        today = (date.today() - year0)
+        today = (date.today() - year0).days
 
         # this then converts that into the number of days so far in the FRC
-        rev_today = (today.days + offset) % year_len
-
+        rev_today = (today + offset + self.hemisphere) % year_len
+        # and retrieves that entry from the frc_days list of day names
         self.day_name = frc_days[rev_today]
 
         if rev_today > 30:
@@ -81,11 +97,11 @@ class year_zero_app(object):
         if 360 < rev_today <= 366:
             self.month = "Sansculottides"
 
-        self.app.title = f"{self.day_name} {self.day_no} {self.month}"    
-
-
 
     def on_tick(self, sender):
+        self.rev_calendar()
+
+
         now = datetime.today()
         total_sec = 0
         total_sec += now.hour * 60 * 60
@@ -102,8 +118,7 @@ class year_zero_app(object):
 
         cur_rev_sec = total_rev_sec
 
-        self.app.title = f"{cur_rev_hour}:{cur_rev_min:0>2d}" # :{round(cur_rev_sec):0>2d}"
-
+        self.app.title = f"{self.day_name} {self.day_no} {self.month}   {cur_rev_hour}:{cur_rev_min:0>2d}" # :{round(cur_rev_sec):0>2d}"  
 
     def run(self):
         self.app.run()
