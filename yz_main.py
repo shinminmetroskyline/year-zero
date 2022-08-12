@@ -15,14 +15,15 @@ class year_zero_app(object):
             "h_north": "southern hemisphere",
             "h_south": "northern hemisphere"
         }
-        self.app = rumps.App(self.config["app_name"], quit_button="quit")
+        self.hemisphere = 0
+        self.rev_calendar()
+
+        self.app = rumps.App(self.calculate_rev_time(), quit_button="quit")
         self.timer = rumps.Timer(self.on_tick, 1)
 
         self.toggle_hs = rumps.MenuItem(title=self.config["h_north"], callback=self.toggle_hemisphere)
         self.app.menu = [self.toggle_hs]
 
-        self.hemisphere = 0
-        self.rev_calendar()
         self.timer.start()
     
     def toggle_hemisphere(self, sender):
@@ -100,8 +101,9 @@ class year_zero_app(object):
 
     def on_tick(self, sender):
         self.rev_calendar()
+        self.app.title = self.calculate_rev_time()
 
-
+    def calculate_rev_time(self):
         now = datetime.today()
         total_sec = 0
         total_sec += now.hour * 60 * 60
@@ -118,7 +120,7 @@ class year_zero_app(object):
 
         cur_rev_sec = total_rev_sec
 
-        self.app.title = f"{self.day_name} {self.day_no} {self.month}   {cur_rev_hour}:{cur_rev_min:0>2d}" # :{round(cur_rev_sec):0>2d}"  
+        return f"{self.day_name} {self.day_no} {self.month}   {cur_rev_hour}:{cur_rev_min:0>2d}" # :{round(cur_rev_sec):0>2d}"  
 
     def run(self):
         self.app.run()
